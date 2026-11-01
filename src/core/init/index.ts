@@ -36,15 +36,19 @@ export default async() => {
   bootLog('Initing...')
   commonActions.setFontSize(global.lx.fontSize)
   bootLog('Font size changed.')
+  bootLog('> initSetting')
   const setting = await initSetting()
   bootLog('Setting inited.')
   // console.log(setting)
 
+  bootLog('> initTheme')
   await initTheme(setting)
   bootLog('Theme inited.')
+  bootLog('> initI18n')
   await initI18n(setting)
   bootLog('I18n inited.')
 
+  bootLog('> initUserApi')
   await initUserApi(setting)
   bootLog('User Api inited.')
 
@@ -53,13 +57,17 @@ export default async() => {
 
   registerPlaybackService()
   bootLog('Playback Service Registered.')
+  bootLog('> initPlayer')
   await initPlayer(setting)
   bootLog('Player inited.')
+  bootLog('> dataInit')
   await dataInit(setting)
   bootLog('Data inited.')
+  bootLog('> initCommonState')
   await initCommonState(setting)
   bootLog('Common State inited.')
 
+  bootLog('> initSync')
   void initSync(setting)
   bootLog('Sync inited.')
 
