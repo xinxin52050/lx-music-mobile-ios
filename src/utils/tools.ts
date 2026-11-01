@@ -20,7 +20,18 @@ export const getDeviceLanguage = async() => {
   //     NativeModules.SettingsManager.settings.AppleLanguages[0] // iOS 13
   //   : await getSystemLocales()
   // deviceLanguage = typeof deviceLanguage === 'string' ? deviceLanguage.substring(0, 5).toLocaleLowerCase() : ''
-  return getSystemLocales()
+  let deviceLanguage = ''
+  try {
+    deviceLanguage = String(await getSystemLocales() ?? '')
+  } catch (err) {
+    console.warn('getSystemLocales failed', err)
+  }
+  // iOS 返回的是 BCP-47（zh-Hans-CN / en-US），要转成应用内的 locale id（zh_cn / zh_tw / en_us）
+  const lang = deviceLanguage.toLowerCase().replace(/-/g, '_')
+  if (lang.startsWith('zh')) {
+    return (lang.includes('tw') || lang.includes('hk') || lang.includes('hant')) ? 'zh_tw' : 'zh_cn'
+  }
+  return 'en_us'
 }
 
 

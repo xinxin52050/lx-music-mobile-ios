@@ -1,11 +1,18 @@
 import { memo, useCallback, useRef, useEffect } from 'react'
-import { type LayoutChangeEvent, StyleSheet, View, StatusBar, Dimensions } from 'react-native'
+import { type LayoutChangeEvent, StyleSheet, View, StatusBar, Dimensions, Platform, NativeModules } from 'react-native'
 import commonState from '@/store/common/state'
 import settingState from '@/store/setting/state'
 import { setStatusbarHeight } from '@/core/common'
 import { windowSizeTools, getWindowSize } from '@/utils/windowSizeTools'
 
 const getStatusbarHeight = (winHeight: number, layoutHeight: number) => {
+  // iOS 上没有 StatusBar.currentHeight（恒为 undefined），
+  // 不处理会导致顶部导航压在状态栏/灵动岛下面且无法点击。
+  if (Platform.OS === 'ios') {
+    const height = NativeModules.UtilsModule?.statusBarHeight as number | undefined
+    return typeof height === 'number' && height > 0 ? height : 44
+  }
+
   const height = (!settingState.setting['common.alwaysKeepStatusbarHeight'] &&
           parseFloat(winHeight.toFixed(2)) >= parseFloat(layoutHeight.toFixed(2)))
     ? 0

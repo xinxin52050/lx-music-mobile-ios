@@ -33,6 +33,34 @@ RCT_EXPORT_MODULE(UtilsModule)
 
 + (BOOL)requiresMainQueueSetup { return NO; }
 
+// 供 JS 同步读取的状态栏（安全区顶部）高度，单位 pt。
+// JS 侧 src/components/SizeView.tsx 用它给顶部导航栏留出刘海/灵动岛空间，
+// 否则 iOS 上 StatusBar.currentHeight 恒为 undefined，导航栏会压在状态栏下面。
+- (NSDictionary *)constantsToExport
+{
+  __block CGFloat top = 0;
+  RCTUnsafeExecuteOnMainQueueSync(^{
+    UIWindow *keyWindow = nil;
+    if (@available(iOS 13.0, *)) {
+      for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) continue;
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        for (UIWindow *window in windowScene.windows) {
+          if (window.isKeyWindow) { keyWindow = window; break; }
+        }
+        if (!keyWindow) keyWindow = windowScene.windows.firstObject;
+        if (keyWindow) break;
+      }
+    }
+    if (!keyWindow) keyWindow = UIApplication.sharedApplication.windows.firstObject;
+    CGFloat safeTop = keyWindow.safeAreaInsets.top;
+    CGFloat statusHeight = UIApplication.sharedApplication.statusBarFrame.size.height;
+    top = MAX(safeTop, statusHeight);
+    if (top <= 0) top = 20.0;
+  });
+  return @{ @"statusBarHeight": @(top) };
+}
+
 - (NSArray<NSString *> *)supportedEvents {
   return @[LXUtilsScreenStateEvent, LXUtilsScreenSizeEvent];
 }
